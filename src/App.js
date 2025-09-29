@@ -1,30 +1,21 @@
 import { useState } from "react";
 
-const initialItems = [
-  { id: 1, description: "Passports", quantity: 2, packed: true },
-  { id: 2, description: "Pairs of Socks", quantity: 6, packed: false },
-  { id: 3, description: "Charger", quantity: 1, packed: true },
-  { id: 4, description: "GoPro", quantity: 1, packed: false },
-];
-
 export default function App() {
-  const [items, setItems] = useState(initialItems);
+  const [items, setItems] = useState([]); // ✅ Use the initial items
 
-  function addItem(description, quantity) {
-    const newItem = {
-      id: Date.now(),
-      description,
-      quantity,
-      packed: false,
-    };
-    setItems((prevItems) => [...prevItems, newItem]);
+  function handleAddItems(item) {
+    setItems((items) => [...items, item]);
+  }
+
+  function handleDeleteItem(id) {
+    setItems((items) => items.filter((item) => item.id !== id));
   }
 
   return (
     <div className="app">
       <Logo />
-      <Form onAddItem={addItem} />
-      <PackingList items={items} />
+      <Form onAddItems={handleAddItems} />
+      <PackingList items={items} ondDeleteItem={handleDeleteItem} />
       <Stats items={items} />
     </div>
   );
@@ -34,15 +25,14 @@ function Logo() {
   return <h1>Europe Trip 🧳</h1>;
 }
 
-function Form({ onAddItem }) {
+function Form({ onAddItems }) {
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState(1);
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!description) return;
-
-    onAddItem(description, quantity);
+    onAddItems(description, quantity);
     setDescription("");
     setQuantity(1);
   }
@@ -71,25 +61,29 @@ function Form({ onAddItem }) {
   );
 }
 
-function PackingList({ items }) {
+function PackingList({ items, ondDeleteItem }) {
   return (
     <div className="list">
       <ul>
         {items.map((item) => (
-          <Item item={item} key={item.id} />
+          <Item
+            item={item}
+            ondDeleteItem={() => ondDeleteItem(item.id)}
+            key={item.id}
+          />
         ))}
       </ul>
     </div>
   );
 }
 
-function Item({ item }) {
+function Item({ item, ondDeleteItem }) {
   return (
     <li>
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
         {item.quantity} {item.description}
       </span>
-      <button>❌</button>
+      <button onClick={ondDeleteItem}>❌</button>
     </li>
   );
 }
