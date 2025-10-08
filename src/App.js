@@ -83,10 +83,26 @@ function Form({ onAddItems }) {
 }
 
 function PackingList({ items, onDeleteItem, onToggleItems }) {
+  const [sortBy, setSortBy] = useState("input");
+
+  let sortedItems;
+
+  if (sortBy === "input") sortedItems = items;
+
+  if (sortBy === "description")
+    sortedItems = items
+      .slice()
+      .sort((a, b) => a.description.localeCompare(b.description));
+
+  if (sortBy === "packed")
+    sortedItems = items
+      .slice()
+      .sort((a, b) => Number(a.packed) - Number(b.packed));
+
   return (
     <div className="list">
       <ul>
-        {items.map((item) => (
+        {sortedItems.map((item) => (
           <Item
             item={item}
             onDeleteItem={onDeleteItem}
@@ -95,6 +111,13 @@ function PackingList({ items, onDeleteItem, onToggleItems }) {
           />
         ))}
       </ul>
+      <div className="actions">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="input">Sort by input order</option>
+          <option value="description">Description</option>
+          <option value="packed">Packed status</option>
+        </select>
+      </div>
     </div>
   );
 }
@@ -116,11 +139,25 @@ function Item({ item, onDeleteItem, onToggleItems }) {
 }
 
 function Stats({ items }) {
-  const total = items.length;
-  const packed = items.filter((item) => item.packed).length;
+  if (!items.length)
+    return (
+      <footer className="stats">
+        <em>Your packing list is empty. Start adding items!</em>
+      </footer>
+    );
+
+  const numItems = items.length;
+  const numPacked = items.filter((item) => item.packed).length;
+  const percentage =
+    numItems === 0 ? 0 : Math.round((numPacked / numItems) * 100);
+
   return (
     <footer className="stats">
-      💼 You have {total} items ({packed} packed), you are ready to go! ✈️
+      <em>
+        {percentage === 100
+          ? "You are ready to go! 🥳"
+          : `💼 You have ${numItems} items on your list, and you already packed ${numPacked} (${percentage}%)`}
+      </em>
     </footer>
   );
 }
